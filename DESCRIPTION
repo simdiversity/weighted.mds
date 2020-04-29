@@ -5,6 +5,6 @@ Version: 0.1.0
 Author: Mattia Egloff <megloff1@unil.ch> and Fran\\u00e7ois Bavaud <fbavaud@unil.ch>
 Maintainer: Mattia Egloff <megloff1@unil.ch>
 Description: Weighted MDS, and plots of it.
-License: MIT
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
