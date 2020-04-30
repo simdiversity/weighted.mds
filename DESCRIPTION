@@ -2,7 +2,11 @@ Package: simdiversity.weighted.mds
 Type: Package
 Title: Computes a Weighted MDS
 Version: 0.1.0
-Author: Mattia Egloff <megloff1@unil.ch> and Fran\\u00e7ois Bavaud <fbavaud@unil.ch>
+Authors@R: person("Mattia", "Egloff", email = "megloff1@unil.ch",
+                  role = c("aut", "cre"))
+            person("Fran\\u00e7ois", "Bavaud", email = "fbavaud@unil.ch",
+                  role = c("aut", "cre", "cph"))
+Authors: Mattia Egloff and Fran\\u00e7ois Bavaud
 Maintainer: Mattia Egloff <megloff1@unil.ch>
 Description: Weighted MDS, and plots of it.
 License: MIT + file LICENSE
