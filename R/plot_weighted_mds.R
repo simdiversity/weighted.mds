@@ -1,15 +1,27 @@
-library(wordcloud)
+#' Plot Weighted MDS
+#' @import graphics
+#' @importFrom wordcloud textplot
+#' @importFrom grDevices rainbow rgb
+#' @importFrom stringr str_sort
+#'
+#' @param mds a list containing Xtilde and lambda and the weights
+#' @param dimentions the dimentions to be plotted ex: c(1,2)
+#' @param group_by a vector containing a group for each individual
+#' @param ... graphical params
 
-plot.mds <- function(Xtilde, lambda, dimentions, weights, group_by, ...) {
+plot.mds <- function(mds, dimentions, group_by, ...) {
+  Xtilde = mds$Xtilde
+  lambda = mds$lambda
+  weights = mds$weights
   d1 = dimentions[1]
   d2 = dimentions[2]
   contributions = round(lambda/sum(lambda), 4) * 100
-  y_labels <- paste("Dimention", d1, "(", contributions[d1], "% )")
-  x_labels <- paste("Dimention", d2, "(", contributions[d2], "% )")
+  y_labels <- paste("Dimension", d1, "(", contributions[d1], "% )")
+  x_labels <- paste("Dimension", d2, "(", contributions[d2], "% )")
   labels <- rownames(Xtilde)
   title <- c()
-  colors <- rainbow(length(unique(group_by)))
-
+  colors <- grDevices::rainbow(length(unique(group_by)))
+  names(colors) <- stringr::str_sort(unique(group_by), numeric = TRUE)
   # check for additional function arguments
   if ( length(list(...)) ) {
     Lst <- list(...)
@@ -40,11 +52,11 @@ plot.mds <- function(Xtilde, lambda, dimentions, weights, group_by, ...) {
   if ( is.null(y_labels) ) {
     y_labels <- c(1:nrow(Xtilde))
   }
-  par(mar = c(10.1, 4.1, 4.1, 0))
+  par(mar = c(18.1, 4.1, 4.1, 4.1))
   # construction of a cex scale such that min(weights) = a and max(weights) = b
-  a = 0.5
-  b = 6
-  cexf = (sqrt(weights) - min(sqrt(weights)))/(max(sqrt(weights)) - min(sqrt(weights)))*(b - a) + a
+  a <- 0.5
+  b <- 6
+  cexf <- (sqrt(weights) - min(sqrt(weights)))/(max(sqrt(weights)) - min(sqrt(weights)))*(b - a) + a
   plot(
     -Xtilde[, d1],
     Xtilde[, d2],
@@ -54,26 +66,45 @@ plot.mds <- function(Xtilde, lambda, dimentions, weights, group_by, ...) {
     ylab = y_labels,
     cex.axis = 1.1,
     cex.lab = 1.1,
-    col = colors
-  )
-  text(
-    -Xtilde[, d1],
-    Xtilde[, d2] + 0.002,
-    labels = labels,
-    cex = .5
+    col = colors[group_by]
   )
 
-  legend(
-    "bottom",
-    legend = unique(group_by),
-    col = colors,
-    pch = 1,
-    xpd = TRUE,
-    horiz = TRUE,
-    inset = c(0, -.08),
-    bty = "n",
-    cex = .8
+  wordcloud::textplot(
+    -Xtilde[, d1],
+    Xtilde[, d2],
+    labels,
+    show.lines = TRUE,
+    new = FALSE,
+    cex = .6,
+    col = rgb(.11, .11, .11, .33)
   )
+
+  if (length(unique(group_by)) < 10) {
+    legend(
+      "bottom",
+      legend = stringr::str_sort(unique(group_by), numeric = TRUE),
+      col = colors[stringr::str_sort(unique(group_by), numeric = TRUE)],
+      pch = 2,
+      xpd = TRUE,
+      horiz = TRUE,
+      inset = c(0, -.08),
+      cex = .8,
+      bty = "o"
+    )
+  } else {
+    par(mar=c(0, 0, 0, 0))
+    legend(
+      "bottom",
+      legend = str_sort(unique(group_by), numeric = TRUE),
+      col = colors[str_sort(unique(group_by), numeric = TRUE)],
+      pch = 2,
+      xpd = TRUE,
+      ncol = 5,
+      inset = c(0, -.075 - (.008 * length(unique(group_by))/5)), # 0.01
+      cex = .8,
+      bty = "o"
+    )
+  }
 
   abline(h = 0)
   abline(v = 0)

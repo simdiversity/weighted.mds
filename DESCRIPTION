@@ -12,3 +12,7 @@ Description: Weighted MDS, and plots of it.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+Imports: 
+    wordcloud,
+    stringr
+RoxygenNote: 7.1.0
