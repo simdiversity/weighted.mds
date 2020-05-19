@@ -8,6 +8,8 @@
 #' @param dimentions the dimentions to be plotted ex: c(1,2)
 #' @param group_by a vector containing a group for each individual
 #' @param ... graphical params
+#'
+#' @export
 
 plot.mds <- function(mds, dimentions, group_by, ...) {
   Xtilde = mds$Xtilde

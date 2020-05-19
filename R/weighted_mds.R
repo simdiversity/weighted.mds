@@ -3,7 +3,7 @@
 #' @param D a distance or dissimilarity
 #' @param f the weights
 #'
-#'
+#' @export
 weighted_mds <- function(D, f) {
   n <- nrow(D)
   H = diag(n) - rep(1, n) %*% t(f)
