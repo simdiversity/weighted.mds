@@ -5,7 +5,7 @@
 #'
 #' @export
 
-mds <- function(D, f) {
+weighted_mds <- function(D, f) {
   n <- nrow(D)
   H = diag(n) - rep(1, n) %*% t(f)
   # H %*% H - H about zero; OK
