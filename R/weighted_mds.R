@@ -12,17 +12,18 @@ weighted_mds <- function(D, f) {
   B = -0.5 * H %*% D %*% t(H)
   K = diag(sqrt(f)) %*% B %*% diag(sqrt(f))
 
-  lambda = eigen(K)$values
+  K_eigen = eigen(K)
+  lambda = K_eigen$values
   if (any(lambda<0)) {
-    warning(paste("Negative values found for lambda, normalising to 0.\n", lambda[which(lambda<0)]))
-    lambda = pmax(rep(0, length(lambda)), lambda)
+    if (!all.equal(lambda, rep(0,n))) warning(paste(
+        "Negative values found for lambda:\n",
+        paste(sprintf("%.0E", lambda[which(lambda<0)]), collapse = ", " ),
+        "\nnormalising to 0.\n"
+    ))
+    lambda = pmax(rep(0,n), lambda)
   }
-  lambda_rel = lambda/sum(lambda)
-
-  round(100*lambda_rel, 1)
-
-  U = eigen(K)$vectors
-  Xtilde = diag(1/sqrt(f)) %*% U %*% diag(sqrt(lambda))
+  U = K_eigen$vectors
+  Xtilde = diag(1L/sqrt(f)) %*% U %*% diag(sqrt(lambda))
   result = list(Xtilde, lambda, f)
   names(result) = c("Xtilde", "lambda", "weights")
   class(result)="mds"
@@ -40,6 +41,11 @@ weighted_mds <- function(D, f) {
 #' @param group_by a vector containing a group for each individual
 #' @param ... graphical params
 #'
+#' @example
+#' D <- as.matrix(eurodist)[1:5, 1:5]
+#' f <- rep(1/5, 5)
+#' mds <- weighted_mds(D, f)
+#' plot(mds, c(1,2), c(1,1,3,3,4))
 #' @export
 #'
 plot.mds <- function(x, dimentions, group_by, ...) {
@@ -51,7 +57,8 @@ plot.mds <- function(x, dimentions, group_by, ...) {
   contributions = round(lambda/sum(lambda), 4) * 100
   y_labels <- paste("Dimension", d1, "(", contributions[d1], "% )")
   x_labels <- paste("Dimension", d2, "(", contributions[d2], "% )")
-  labels <- rownames(Xtilde)
+  point_labels <- rownames(Xtilde)
+  if (is.null(point_labels)) point_labels <- as.character(seq(nrow(Xtilde)))
   title <- c()
   colors <- grDevices::rainbow(length(unique(group_by)))
   names(colors) <- stringr::str_sort(unique(group_by), numeric = TRUE)
@@ -74,8 +81,8 @@ plot.mds <- function(x, dimentions, group_by, ...) {
     if ( !is.null(Lst$colors) ) {
       colors <- Lst$colors
     }
-    if ( !is.null(Lst$labels) ) {
-      labels <- Lst$labels
+    if ( !is.null(Lst$point_labels) ) {
+      point_labels <- Lst$point_labels
     }
   }
   # check for null values
@@ -85,61 +92,71 @@ plot.mds <- function(x, dimentions, group_by, ...) {
   if ( is.null(y_labels) ) {
     y_labels <- c(1:nrow(Xtilde))
   }
-  par(mar = c(18.1, 4.1, 4.1, 4.1))
-  # construction of a cex scale such that min(weights) = a and max(weights) = b
+
+
+  par(mar=c(5, 4, 4, 2) + 0.1, oma = c(6,0,0,0), pty="s")
   a <- 0.5
-  b <- 6
-  cexf <- (sqrt(weights) - min(sqrt(weights)))/(max(sqrt(weights)) - min(sqrt(weights)))*(b - a) + a
+  b <- 2
+  cexf <- ((sqrt(weights) - min(sqrt(weights)))/(max(sqrt(weights)) - min(sqrt(weights)))*(b - a) + a)
+  cexl <- rep(0.5, length(cexf))
+  x_max <- max(-Xtilde[, d1])
+  y_max <- max(Xtilde[, d2])
+  x_min <- min(-Xtilde[, d1])
+  y_min <- min(Xtilde[, d2])
+
   plot(
     -Xtilde[, d1],
     Xtilde[, d2],
-    cex = (cexf/3),
+    cex = cexf,
     main = title,
     xlab = x_labels,
     ylab = y_labels,
-    cex.axis = 1.1,
-    cex.lab = 1.1,
-    col = colors[group_by]
+    cex.axis = .7,
+    cex.lab = .7,
+    col = colors[group_by],
+    xlim = c(-.1 * (x_max - x_min) + x_min, .1 * (x_max - x_min) + x_max),
+    ylim = c(-.1 * (y_max - y_min) + y_min, .1 * (y_max - y_min) + y_max)
   )
 
   wordcloud::textplot(
     -Xtilde[, d1],
     Xtilde[, d2],
-    labels,
+    point_labels,
     show.lines = TRUE,
     new = FALSE,
-    cex = .6,
-    col = rgb(.11, .11, .11, .33)
-  )
+    cex = cexl,
+    col = rgb(.11, .11, .11, .33),
+    xlim = c(-.1 * (x_max - x_min) + x_min, .1 * (x_max - x_min) + x_max),
+    ylim = c(-.1 * (y_max - y_min) + y_min, .1 * (y_max - y_min) + y_max)
 
+  )
+  abline(h = 0)
+  abline(v = 0)
+  par(mar=c(0,0,0,0), oma=c(0,0,10,0), pty="m")
   if (length(unique(group_by)) < 10) {
     legend(
       "bottom",
       legend = stringr::str_sort(unique(group_by), numeric = TRUE),
       col = colors[stringr::str_sort(unique(group_by), numeric = TRUE)],
       pch = 2,
-      xpd = TRUE,
       horiz = TRUE,
-      inset = c(0, -.08),
-      cex = .8,
-      bty = "o"
+      cex = .5,
+      bty = "o",
+      xpd = TRUE
     )
   } else {
-    par(mar=c(0, 0, 0, 0))
     legend(
       "bottom",
       legend = str_sort(unique(group_by), numeric = TRUE),
       col = colors[str_sort(unique(group_by), numeric = TRUE)],
       pch = 2,
-      xpd = TRUE,
       ncol = 5,
-      inset = c(0, -.075 - (.008 * length(unique(group_by))/5)), # 0.01
-      cex = .8,
-      bty = "o"
+      cex = .5,
+      bty = "o",
+      xpd = TRUE
     )
   }
-
-  abline(h = 0)
-  abline(v = 0)
   layout(1)
 }
+
+
