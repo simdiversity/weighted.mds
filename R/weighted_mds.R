@@ -94,7 +94,7 @@ plot.mds <- function(x, dimentions, group_by, ...) {
   }
 
 
-  par(mar=c(5, 4, 4, 2) + 0.1, oma = c(6,0,0,0), pty="s")
+  par(mar=c(5, 4, 4, 2) + 0.1, oma = c(6,0,0,0), pty = "s")
   a <- 0.5
   b <- 2
   cexf <- ((sqrt(weights) - min(sqrt(weights)))/(max(sqrt(weights)) - min(sqrt(weights)))*(b - a) + a)
