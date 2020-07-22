@@ -34,7 +34,7 @@ weighted_mds <- function(D, f) {
 #' @import graphics
 #' @importFrom wordcloud textplot
 #' @importFrom grDevices rainbow rgb
-#' @importFrom stringr str_sort
+#' @importFrom stringr str_sort str_replace_na
 #'
 #' @param x an mds object
 #' @param dimentions the dimentions to be plotted ex: c(1,2)
@@ -57,10 +57,10 @@ plot.mds <- function(x, dimentions, group_by, ...) {
   contributions = round(lambda/sum(lambda), 4) * 100
   y_labels <- paste("Dimension", d1, "(", contributions[d1], "% )")
   x_labels <- paste("Dimension", d2, "(", contributions[d2], "% )")
-  point_labels <- rownames(Xtilde)
+  point_labels <- stringr::str_replace_na(rownames(Xtilde), "Unknown")
   if (is.null(point_labels)) point_labels <- as.character(seq(nrow(Xtilde)))
   title <- c()
-  colors <- grDevices::rainbow(length(unique(group_by)))
+  colors <- grDevices::rainbow(length(unique(group_by)), alpha = .9)
   names(colors) <- stringr::str_sort(unique(group_by), numeric = TRUE)
   # check for additional function arguments
   if ( length(list(...)) ) {
@@ -81,8 +81,8 @@ plot.mds <- function(x, dimentions, group_by, ...) {
     if ( !is.null(Lst$colors) ) {
       colors <- Lst$colors
     }
-    if ( !is.null(Lst$point_labels) ) {
-      point_labels <- Lst$point_labels
+    if ( !is.null(Lst$labels) ) {
+      point_labels <- Lst$labels
     }
   }
   # check for null values
@@ -94,7 +94,7 @@ plot.mds <- function(x, dimentions, group_by, ...) {
   }
 
 
-  par(mar=c(5, 4, 4, 2) + 0.1, oma = c(6,0,0,0), pty = "s")
+  par(mar = c(5, 4, 4, 2) + 0.1, oma = c(6,0,0,0), pty = "s")
   a <- 0.5
   b <- 2
   cexf <- ((sqrt(weights) - min(sqrt(weights)))/(max(sqrt(weights)) - min(sqrt(weights)))*(b - a) + a)
@@ -111,8 +111,8 @@ plot.mds <- function(x, dimentions, group_by, ...) {
     main = title,
     xlab = x_labels,
     ylab = y_labels,
-    cex.axis = .7,
-    cex.lab = .7,
+    cex.axis = .9,
+    cex.lab = .9,
     col = colors[group_by],
     xlim = c(-.1 * (x_max - x_min) + x_min, .1 * (x_max - x_min) + x_max),
     ylim = c(-.1 * (y_max - y_min) + y_min, .1 * (y_max - y_min) + y_max)
@@ -126,13 +126,13 @@ plot.mds <- function(x, dimentions, group_by, ...) {
     new = FALSE,
     cex = cexl,
     col = rgb(.11, .11, .11, .33),
-    xlim = c(-.1 * (x_max - x_min) + x_min, .1 * (x_max - x_min) + x_max),
-    ylim = c(-.1 * (y_max - y_min) + y_min, .1 * (y_max - y_min) + y_max)
+    xlim = c(-.2 * (x_max - x_min) + x_min, .2 * (x_max - x_min) + x_max),
+    ylim = c(-.2 * (y_max - y_min) + y_min, .2 * (y_max - y_min) + y_max)
 
   )
   abline(h = 0)
   abline(v = 0)
-  par(mar=c(0,0,0,0), oma=c(0,0,10,0), pty="m")
+  par(mar = c(0,0,0,0), oma = c(0,0,10,0), pty = "m")
   if (length(unique(group_by)) < 10) {
     legend(
       "bottom",
@@ -140,7 +140,7 @@ plot.mds <- function(x, dimentions, group_by, ...) {
       col = colors[stringr::str_sort(unique(group_by), numeric = TRUE)],
       pch = 2,
       horiz = TRUE,
-      cex = .5,
+      cex = .8,
       bty = "o",
       xpd = TRUE
     )
@@ -151,7 +151,7 @@ plot.mds <- function(x, dimentions, group_by, ...) {
       col = colors[str_sort(unique(group_by), numeric = TRUE)],
       pch = 2,
       ncol = 5,
-      cex = .5,
+      cex = .8,
       bty = "o",
       xpd = TRUE
     )
